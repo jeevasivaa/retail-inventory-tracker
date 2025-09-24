@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Export Reports - Retail Inventory Tracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Professional Title Bar -->
+    <div class="title-bar">
+        <h1><i class="fas fa-file-export me-2"></i>Export Reports</h1>
+        <h4>Generate and export comprehensive reports</h4>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Inventory Reports</h5>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Report Type</label>
+                            <select class="form-select">
+                                <option>Current Stock Levels</option>
+                                <option>Low Stock Report</option>
+                                <option>Stock Movement History</option>
+                                <option>Inventory Valuation</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Date Range</label>
+                            <div class="row">
+                                <div class="col">
+                                    <input type="date" class="form-control" placeholder="From">
+                                </div>
+                                <div class="col">
+                                    <input type="date" class="form-control" placeholder="To">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Export Format</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="format" id="csv" checked>
+                                <label class="btn btn-outline-primary" for="csv">CSV</label>
+                                
+                                <input type="radio" class="btn-check" name="format" id="excel">
+                                <label class="btn btn-outline-primary" for="excel">Excel</label>
+                                
+                                <input type="radio" class="btn-check" name="format" id="pdf">
+                                <label class="btn btn-outline-primary" for="pdf">PDF</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-download me-2"></i>Generate Report
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>User Activity Reports</h5>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Report Type</label>
+                            <select class="form-select">
+                                <option>User Login Activity</option>
+                                <option>Inventory Changes by User</option>
+                                <option>Access Log Summary</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">User Filter</label>
+                            <select class="form-select">
+                                <option value="">All Users</option>
+                                <option>Admin Users Only</option>
+                                <option>Manager Users Only</option>
+                                <option>Employee Users Only</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Time Period</label>
+                            <select class="form-select">
+                                <option>Last 7 Days</option>
+                                <option>Last 30 Days</option>
+                                <option>Last 3 Months</option>
+                                <option>Custom Range</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-info w-100">
+                            <i class="fas fa-download me-2"></i>Generate Report
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Reports -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Recent Reports</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Report Name</th>
+                            <th>Type</th>
+                            <th>Generated</th>
+                            <th>Size</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Inventory_Report_2025-09-24</td>
+                            <td><span class="badge bg-primary">Inventory</span></td>
+                            <td>2025-09-24 10:30 AM</td>
+                            <td>2.3 MB</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Low_Stock_Alert_2025-09-23</td>
+                            <td><span class="badge bg-warning">Alert</span></td>
+                            <td>2025-09-23 08:15 AM</td>
+                            <td>542 KB</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory Management - Retail Inventory Tracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Professional Title Bar -->
+    <div class="title-bar">
+        <h1><i class="fas fa-warehouse me-2"></i>Inventory Management</h1>
+        <h4>Manage your product inventory across all warehouses</h4>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-success" onclick="exportInventory()">
+                    <i class="fas fa-download me-1"></i>Export
+                </button>
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                    <i class="fas fa-plus me-1"></i>Add Product
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" placeholder="Search products..." id="searchInput">
+            </div>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" id="categoryFilter">
+                <option value="">All Categories</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Food">Food</option>
+                <option value="Home">Home</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" id="stockFilter">
+                <option value="">All Stock Levels</option>
+                <option value="low">Low Stock</option>
+                <option value="normal">Normal Stock</option>
+                <option value="high">High Stock</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="btn btn-outline-secondary" onclick="clearFilters()">
+                <i class="fas fa-times me-1"></i>Clear
+            </button>
+        </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="inventoryTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>SKU</th>
+                            <th>Warehouse</th>
+                            <th>Stock Level</th>
+                            <th>Unit Price</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventory_data %}
+                        <tr data-category="{{ item[2] }}" data-stock="{{ item[4] }}" data-reorder="{{ item[5] }}">
+                            <td>
+                                <div class="fw-semibold">{{ item[1] }}</div>
+                                <div class="small text-muted">ID: {{ item[0] }}</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ item[2] }}</span>
+                            </td>
+                            <td>
+                                <code>{{ item[3] }}</code>
+                            </td>
+                            <td>{{ item[6] }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2 fw-bold">{{ item[4] }}</span>
+                                    <div class="progress flex-grow-1" style="height: 8px; max-width: 100px;">
+                                        {% set stock_percentage = (item[4] / item[5] * 100) if item[5] > 0 else 0 %}
+                                        <div class="progress-bar 
+                                            {% if stock_percentage <= 50 %}bg-danger
+                                            {% elif stock_percentage <= 100 %}bg-warning
+                                            {% else %}bg-success{% endif %}"
+                                             style="width: {{ stock_percentage }}%"></div>
+                                    </div>
+                                </div>
+                                <div class="small text-muted">Reorder: {{ item[5] }}</div>
+                            </td>
+                            <td>
+                                <div class="fw-bold">${{ "%.2f"|format(item[7]) }}</div>
+                            </td>
+                            <td>
+                                {% if item[4] <= item[5] %}
+                                    <span class="badge bg-danger">Low Stock</span>
+                                {% elif item[4] <= item[5] * 2 %}
+                                    <span class="badge bg-warning">Medium</span>
+                                {% else %}
+                                    <span class="badge bg-success">Good</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-primary" 
+                                            onclick="editProduct({{ item[0] }})"
+                                            title="Edit Product">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success" 
+                                            onclick="updateStock({{ item[0] }})"
+                                            title="Update Stock">
+                                        <i class="fas fa-boxes"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info" 
+                                            onclick="viewHistory({{ item[0] }})"
+                                            title="View History">
+                                        <i class="fas fa-history"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Add New Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addProductForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Product Name *</label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">SKU *</label>
+                                <input type="text" class="form-control" name="sku" required>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Add more form fields as needed -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Add Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Search and filter functionality
+    document.getElementById('searchInput').addEventListener('input', filterTable);
+    document.getElementById('categoryFilter').addEventListener('change', filterTable);
+    document.getElementById('stockFilter').addEventListener('change', filterTable);
+
+    function filterTable() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const categoryFilter = document.getElementById('categoryFilter').value;
+        const stockFilter = document.getElementById('stockFilter').value;
+        
+        const rows = document.querySelectorAll('#inventoryTable tbody tr');
+        
+        rows.forEach(row => {
+            const productName = row.cells[0].textContent.toLowerCase();
+            const category = row.dataset.category;
+            const stock = parseInt(row.dataset.stock);
+            const reorder = parseInt(row.dataset.reorder);
+            
+            let showRow = true;
+            
+            // Search filter
+            if (searchTerm && !productName.includes(searchTerm)) {
+                showRow = false;
+            }
+            
+            // Category filter
+            if (categoryFilter && category !== categoryFilter) {
+                showRow = false;
+            }
+            
+            // Stock level filter
+            if (stockFilter) {
+                if (stockFilter === 'low' && stock > reorder) showRow = false;
+                if (stockFilter === 'normal' && (stock <= reorder || stock > reorder * 2)) showRow = false;
+                if (stockFilter === 'high' && stock <= reorder * 2) showRow = false;
+            }
+            
+            row.style.display = showRow ? '' : 'none';
+        });
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('categoryFilter').value = '';
+        document.getElementById('stockFilter').value = '';
+        filterTable();
+    }
+
+    function editProduct(productId) {
+        showToast('Edit functionality will be implemented', 'info');
+    }
+
+    function updateStock(productId) {
+        showToast('Stock update functionality will be implemented', 'info');
+    }
+
+    function viewHistory(productId) {
+        showToast('History view functionality will be implemented', 'info');
+    }
+
+    function exportInventory() {
+        showToast('Exporting inventory data...', 'info');
+    }
+</script>
+{% endblock %}

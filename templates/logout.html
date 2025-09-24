@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Logout - Retail Inventory Tracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="text-center">
+        <div class="mb-4">
+            <i class="fas fa-sign-out-alt fa-5x text-muted"></i>
+        </div>
+        <h2 class="mb-3">You have been logged out</h2>
+        <p class="text-muted mb-4">Thank you for using Retail Inventory Tracker</p>
+        <a href="{{ url_for('login') }}" class="btn btn-primary">
+            <i class="fas fa-sign-in-alt me-2"></i>Login Again
+        </a>
+    </div>
+</div>
+{% endblock %}

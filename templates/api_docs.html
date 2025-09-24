@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}API Documentation - Retail Inventory Tracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-code me-2"></i>API Documentation
+            </h1>
+            <p class="text-muted mb-0">RESTful API endpoints for inventory management</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header">
+                    <h6 class="mb-0">API Endpoints</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#inventory" class="list-group-item list-group-item-action">
+                        <i class="fas fa-boxes text-primary me-2"></i>Inventory
+                    </a>
+                    <a href="#products" class="list-group-item list-group-item-action">
+                        <i class="fas fa-cube text-success me-2"></i>Products
+                    </a>
+                    <a href="#warehouses" class="list-group-item list-group-item-action">
+                        <i class="fas fa-building text-info me-2"></i>Warehouses
+                    </a>
+                    <a href="#alerts" class="list-group-item list-group-item-action">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>Alerts
+                    </a>
+                    <a href="#auth" class="list-group-item list-group-item-action">
+                        <i class="fas fa-shield-alt text-danger me-2"></i>Authentication
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm mb-4" id="inventory">
+                <div class="card-header">
+                    <h5 class="mb-0">Inventory Endpoints</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-success me-2">GET</span>
+                            <code>/api/inventory</code>
+                        </div>
+                        <p class="text-muted mb-2">Get all inventory items</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="testAPI('/api/inventory', 'GET')">
+                            Test API
+                        </button>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-primary me-2">POST</span>
+                            <code>/api/inventory</code>
+                        </div>
+                        <p class="text-muted mb-2">Add new inventory item</p>
+                        <div class="bg-light p-3 rounded mb-2">
+                            <pre class="mb-0"><code>{
+  "product_id": 1,
+  "warehouse_id": 1,
+  "quantity": 100,
+  "reorder_level": 10
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-warning me-2">PUT</span>
+                            <code>/api/inventory/{id}</code>
+                        </div>
+                        <p class="text-muted mb-2">Update inventory item</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4" id="products">
+                <div class="card-header">
+                    <h5 class="mb-0">Product Endpoints</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-success me-2">GET</span>
+                            <code>/api/products</code>
+                        </div>
+                        <p class="text-muted mb-2">Get all products</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-primary me-2">POST</span>
+                            <code>/api/products</code>
+                        </div>
+                        <p class="text-muted mb-2">Create new product</p>
+                        <div class="bg-light p-3 rounded mb-2">
+                            <pre class="mb-0"><code>{
+  "name": "Product Name",
+  "sku": "PRD-001",
+  "category": "Electronics",
+  "unit_price": 99.99,
+  "description": "Product description"
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Tester -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">API Tester</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <select class="form-select mb-2" id="methodSelect">
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                                <option value="PUT">PUT</option>
+                                <option value="DELETE">DELETE</option>
+                            </select>
+                        </div>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control mb-2" id="endpointInput" placeholder="/api/inventory">
+                        </div>
+                    </div>
+                    <textarea class="form-control mb-2" id="payloadInput" rows="4" placeholder="Request payload (JSON)"></textarea>
+                    <button class="btn btn-primary mb-3" onclick="testCustomAPI()">Send Request</button>
+                    
+                    <div class="border p-3 bg-dark text-light rounded">
+                        <pre id="apiResponse">Response will appear here...</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function testAPI(endpoint, method = 'GET', payload = null) {
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        };
+
+        if (payload) {
+            options.body = JSON.stringify(payload);
+        }
+
+        fetch(endpoint, options)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('apiResponse').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                document.getElementById('apiResponse').textContent = 'Error: ' + error.message;
+            });
+    }
+
+    function testCustomAPI() {
+        const method = document.getElementById('methodSelect').value;
+        const endpoint = document.getElementById('endpointInput').value;
+        const payload = document.getElementById('payloadInput').value;
+
+        let parsedPayload = null;
+        if (payload.trim()) {
+            try {
+                parsedPayload = JSON.parse(payload);
+            } catch (e) {
+                document.getElementById('apiResponse').textContent = 'Error: Invalid JSON payload';
+                return;
+            }
+        }
+
+        testAPI(endpoint, method, parsedPayload);
+    }
+</script>
+{% endblock %}

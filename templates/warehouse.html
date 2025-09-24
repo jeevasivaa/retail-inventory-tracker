@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Warehouse Management - Retail Inventory Tracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Professional Title Bar -->
+    <div class="title-bar">
+        <h1><i class="fas fa-building me-2"></i>Warehouse Management</h1>
+        <h4>Manage warehouse locations and capacity</h4>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addWarehouseModal">
+                <i class="fas fa-plus me-1"></i>Add Warehouse
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for warehouse in warehouses_data %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div>
+                            <h5 class="card-title mb-1">{{ warehouse[1] }}</h5>
+                            <div class="text-muted small">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ warehouse[2] }}
+                            </div>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-chart-bar me-2"></i>View Details</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h4 mb-0 text-primary">{{ warehouse[4] or 0 }}</div>
+                                <div class="small text-muted">Products</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h4 mb-0 text-success">{{ warehouse[5] or 0 }}</div>
+                                <div class="small text-muted">Total Items</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if warehouse[3] %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">Capacity Usage</span>
+                            <span class="small">{{ ((warehouse[5] or 0) / warehouse[3] * 100)|int }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info" style="width: {{ ((warehouse[5] or 0) / warehouse[3] * 100)|int }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid">
+                        <button class="btn btn-outline-primary btn-sm">View Inventory</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

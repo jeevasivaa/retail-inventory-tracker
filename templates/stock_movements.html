@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}Stock Movements - Inventory Tracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Professional Title Bar -->
+    <div class="title-bar">
+        <h1><i class="fas fa-exchange-alt me-2"></i>Stock Movements</h1>
+        <h4>Track all inventory transactions</h4>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMovementModal">
+                <i class="fas fa-plus me-1"></i>Add Movement
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <input type="text" class="form-control" id="searchMovements" placeholder="Search movements...">
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" id="typeFilter">
+                <option value="">All Types</option>
+                <option value="in">Stock In</option>
+                <option value="out">Stock Out</option>
+                <option value="transfer">Transfer</option>
+                <option value="adjustment">Adjustment</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="date" class="form-control" id="dateFrom" placeholder="From Date">
+        </div>
+        <div class="col-md-2">
+            <input type="date" class="form-control" id="dateTo" placeholder="To Date">
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-outline-primary" onclick="exportMovements()">
+                <i class="fas fa-download me-1"></i>Export
+            </button>
+            <button class="btn btn-outline-secondary ms-2" onclick="clearFilters()">
+                <i class="fas fa-times me-1"></i>Clear
+            </button>
+        </div>
+    </div>
+
+    <!-- Movements Table -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="movementsTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Product</th>
+                            <th>Warehouse</th>
+                            <th>Quantity</th>
+                            <th>Reference</th>
+                            <th>User</th>
+                            <th>Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if movements_data %}
+                            {% for movement in movements_data %}
+                            <tr>
+                                <td>{{ movement[5].split()[0] if movement[5] else 'N/A' }}</td>
+                                <td>
+                                    {% if movement[1] == 'in' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-arrow-down me-1"></i>Stock In
+                                        </span>
+                                    {% elif movement[1] == 'out' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-arrow-up me-1"></i>Stock Out
+                                        </span>
+                                    {% elif movement[1] == 'transfer' %}
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-exchange-alt me-1"></i>Transfer
+                                        </span>
+                                    {% elif movement[1] == 'adjustment' %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-cog me-1"></i>Adjustment
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-medium">{{ movement[6] or 'N/A' }}</td>
+                                <td>{{ movement[7] or 'N/A' }}</td>
+                                <td class="text-end fw-bold">
+                                    {% if movement[1] == 'in' or movement[1] == 'adjustment' %}
+                                        <span class="text-success">+{{ movement[2] }}</span>
+                                    {% else %}
+                                        <span class="text-danger">-{{ movement[2] }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ movement[3] or 'N/A' }}</td>
+                                <td>{{ movement[8] or 'System' }}</td>
+                                <td>{{ movement[4] or '' }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" 
+                                            onclick="viewMovement({{ movement[0] }})"
+                                            title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center py-5 text-muted">
+                                    <i class="fas fa-exchange-alt fa-3x mb-3 text-muted"></i>
+                                    <p>No stock movements found.</p>
+                                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMovementModal">
+                                        Add First Movement
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Movement Modal -->
+<div class="modal fade" id="addMovementModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus text-primary me-2"></i>Add Stock Movement
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('add_stock_movement') }}" method="POST" id="addMovementForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="movementType" class="form-label">Movement Type *</label>
+                                <select class="form-select" id="movementType" name="movement_type" required>
+                                    <option value="">Select Type</option>
+                                    <option value="in">Stock In</option>
+                                    <option value="out">Stock Out</option>
+                                    <option value="transfer">Transfer</option>
+                                    <option value="adjustment">Adjustment</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="productSelect" class="form-label">Product *</label>
+                                <select class="form-select" id="productSelect" name="product_id" required>
+                                    <option value="">Select Product</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="warehouseSelect" class="form-label">Warehouse *</label>
+                                <select class="form-select" id="warehouseSelect" name="warehouse_id" required>
+                                    <option value="">Select Warehouse</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="quantity" class="form-label">Quantity *</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" 
+                                       required min="1" step="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="referenceNumber" class="form-label">Reference Number</label>
+                                <input type="text" class="form-control" id="referenceNumber" name="reference_number"
+                                       placeholder="PO-001, INV-002, etc.">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="movementDate" class="form-label">Movement Date</label>
+                                <input type="date" class="form-control" id="movementDate" name="movement_date">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"
+                                  placeholder="Additional notes about this movement..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add Movement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set today's date as default
+    document.getElementById('movementDate').value = new Date().toISOString().split('T')[0];
+    
+    // Load products and warehouses
+    loadProductsAndWarehouses();
+    
+    // Search functionality
+    document.getElementById('searchMovements').addEventListener('input', filterMovements);
+    document.getElementById('typeFilter').addEventListener('change', filterMovements);
+    document.getElementById('dateFrom').addEventListener('change', filterMovements);
+    document.getElementById('dateTo').addEventListener('change', filterMovements);
+});
+
+function loadProductsAndWarehouses() {
+    // Load products
+    fetch('/api/products')
+        .then(response => response.json())
+        .then(products => {
+            const productSelect = document.getElementById('productSelect');
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} (${product.sku})`;
+                productSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error loading products:', error));
+    
+    // Load warehouses
+    fetch('/api/warehouses')
+        .then(response => response.json())
+        .then(warehouses => {
+            const warehouseSelect = document.getElementById('warehouseSelect');
+            warehouses.forEach(warehouse => {
+                const option = document.createElement('option');
+                option.value = warehouse.id;
+                option.textContent = warehouse.name;
+                warehouseSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error loading warehouses:', error));
+}
+
+function filterMovements() {
+    const searchTerm = document.getElementById('searchMovements').value.toLowerCase();
+    const typeFilter = document.getElementById('typeFilter').value;
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
+    
+    const rows = document.querySelectorAll('#movementsTable tbody tr');
+    
+    rows.forEach(row => {
+        const cells = row.getElementsByTagName('td');
+        if (cells.length === 1) return; // Skip empty state row
+        
+        const date = cells[0].textContent;
+        const type = cells[1].textContent.toLowerCase();
+        const product = cells[2].textContent.toLowerCase();
+        const warehouse = cells[3].textContent.toLowerCase();
+        const reference = cells[5].textContent.toLowerCase();
+        const user = cells[6].textContent.toLowerCase();
+        const notes = cells[7].textContent.toLowerCase();
+        
+        // Search filter
+        const matchesSearch = !searchTerm || 
+            product.includes(searchTerm) || 
+            warehouse.includes(searchTerm) ||
+            reference.includes(searchTerm) ||
+            user.includes(searchTerm) ||
+            notes.includes(searchTerm);
+        
+        // Type filter
+        const matchesType = !typeFilter || type.includes(typeFilter);
+        
+        // Date filters
+        const movementDate = new Date(date);
+        const fromDate = dateFrom ? new Date(dateFrom) : null;
+        const toDate = dateTo ? new Date(dateTo) : null;
+        
+        const matchesDateFrom = !fromDate || movementDate >= fromDate;
+        const matchesDateTo = !toDate || movementDate <= toDate;
+        
+        if (matchesSearch && matchesType && matchesDateFrom && matchesDateTo) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function clearFilters() {
+    document.getElementById('searchMovements').value = '';
+    document.getElementById('typeFilter').value = '';
+    document.getElementById('dateFrom').value = '';
+    document.getElementById('dateTo').value = '';
+    filterMovements();
+}
+
+function viewMovement(movementId) {
+    // Implement movement details view
+    console.log('View movement:', movementId);
+}
+
+function exportMovements() {
+    // Implement export functionality
+    console.log('Export movements');
+}
+
+// Form validation
+document.getElementById('addMovementForm').addEventListener('submit', function(e) {
+    const quantity = document.getElementById('quantity').value;
+    if (quantity <= 0) {
+        e.preventDefault();
+        alert('Quantity must be greater than 0');
+        return false;
+    }
+});
+</script>
+{% endblock %}

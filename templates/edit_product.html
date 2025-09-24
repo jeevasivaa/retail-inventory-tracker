@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Product - Inventory Tracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Edit Product
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('update_product', product_id=product[0]) }}" method="POST" id="editProductForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Product Name *</label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="{{ product[1] }}" required maxlength="200">
+                                    <div class="invalid-feedback">Product name is required.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="sku" class="form-label">SKU *</label>
+                                    <input type="text" class="form-control" id="sku" name="sku" 
+                                           value="{{ product[2] }}" required maxlength="50">
+                                    <div class="invalid-feedback">SKU is required and must be unique.</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">Category</label>
+                                    <input type="text" class="form-control" id="category" name="category" 
+                                           value="{{ product[4] or '' }}" maxlength="100"
+                                           list="categoryList">
+                                    <datalist id="categoryList">
+                                        <option value="Electronics">
+                                        <option value="Clothing">
+                                        <option value="Home & Garden">
+                                        <option value="Sports & Outdoors">
+                                        <option value="Books">
+                                        <option value="Health & Beauty">
+                                        <option value="Automotive">
+                                        <option value="Food & Beverage">
+                                    </datalist>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="unit_price" class="form-label">Unit Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="unit_price" name="unit_price" 
+                                               value="{{ product[5] or 0 }}" min="0" step="0.01">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="reorder_level" class="form-label">Reorder Level</label>
+                                    <input type="number" class="form-control" id="reorder_level" name="reorder_level" 
+                                           value="{{ product[6] or 0 }}" min="0" step="1">
+                                    <small class="form-text text-muted">Minimum stock level before reorder alert</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="supplier_id" class="form-label">Supplier</label>
+                                    <select class="form-select" id="supplier_id" name="supplier_id">
+                                        <option value="">Select Supplier</option>
+                                        <!-- Suppliers will be loaded via JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4"
+                                      maxlength="1000" placeholder="Enter product description...">{{ product[3] or '' }}</textarea>
+                            <div class="form-text">
+                                <span id="descCharCount">{{ (product[3] or '')|length }}</span>/1000 characters
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('products') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Products
+                            </a>
+                            <div>
+                                <button type="button" class="btn btn-danger me-2" onclick="deleteProduct()">
+                                    <i class="fas fa-trash me-1"></i>Delete Product
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>Update Product
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this product?</p>
+                <p><strong>{{ product[1] }}</strong> ({{ product[2] }})</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-warning me-2"></i>
+                    This action cannot be undone and will also remove all inventory records for this product.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                    <i class="fas fa-trash me-1"></i>Delete Product
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load suppliers for dropdown
+    loadSuppliers();
+    
+    // Character counter for description
+    const descTextarea = document.getElementById('description');
+    const charCount = document.getElementById('descCharCount');
+    
+    descTextarea.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+    });
+    
+    // Form validation
+    const form = document.getElementById('editProductForm');
+    form.addEventListener('submit', function(e) {
+        if (!form.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+    
+    // SKU formatting
+    document.getElementById('sku').addEventListener('input', function() {
+        this.value = this.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+    });
+});
+
+function loadSuppliers() {
+    fetch('/api/suppliers')
+        .then(response => response.json())
+        .then(suppliers => {
+            const supplierSelect = document.getElementById('supplier_id');
+            const currentSupplierId = {{ product[7] or 'null' }};
+            
+            suppliers.forEach(supplier => {
+                const option = document.createElement('option');
+                option.value = supplier.id;
+                option.textContent = supplier.name;
+                if (supplier.id === currentSupplierId) {
+                    option.selected = true;
+                }
+                supplierSelect.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading suppliers:', error);
+        });
+}
+
+function deleteProduct() {
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+
+function confirmDelete() {
+    fetch(`/api/products/{{ product[0] }}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            window.location.href = "{{ url_for('products') }}";
+        } else {
+            alert('Error: ' + result.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to delete product');
+    });
+}
+</script>
+{% endblock %}

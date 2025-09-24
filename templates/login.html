@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Retail Inventory Tracker{% endblock %}
+
+{% block head %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+    
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .login-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .login-header h1 {
+        color: #333;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .login-header p {
+        color: #666;
+        margin-bottom: 0;
+    }
+    
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .btn-login {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border: none;
+        border-radius: 8px;
+        padding: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .demo-accounts {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .demo-accounts h6 {
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    
+    .demo-account {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.25rem;
+        padding: 0.25rem 0;
+    }
+    
+    .demo-account:last-child {
+        margin-bottom: 0;
+    }
+    
+    .badge-role {
+        font-size: 0.7em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="login-card">
+                    <div class="login-header">
+                        <div class="mb-3">
+                            <i class="fas fa-boxes fa-3x text-primary"></i>
+                        </div>
+                        <h1>Welcome Back</h1>
+                        <p>Sign in to your Retail Inventory Tracker account</p>
+                    </div>
+                    
+                    <form method="POST" id="loginForm">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">
+                                <i class="fas fa-user me-2"></i>Username
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="username" 
+                                   name="username" 
+                                   required 
+                                   autocomplete="username"
+                                   placeholder="Enter your username">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Password
+                            </label>
+                            <div class="input-group">
+                                <input type="password" 
+                                       class="form-control" 
+                                       id="password" 
+                                       name="password" 
+                                       required 
+                                       autocomplete="current-password"
+                                       placeholder="Enter your password">
+                                <button class="btn btn-outline-secondary" 
+                                        type="button" 
+                                        onclick="togglePassword()"
+                                        id="togglePasswordBtn">
+                                    <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe" name="remember_me">
+                            <label class="form-check-label" for="rememberMe">
+                                Remember me for 30 days
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-login w-100 mb-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Sign In
+                        </button>
+                        
+                        <!-- Register Link -->
+                        <div class="text-center mb-3">
+                            <p class="text-muted mb-0">
+                                Don't have an account? 
+                                <a href="{{ url_for('register') }}" class="text-decoration-none">Register here</a>
+                            </p>
+                        </div>
+                    </form>
+                    
+                    <!-- Demo Accounts Section -->
+                    <div class="demo-accounts">
+                        <h6><i class="fas fa-info-circle me-2"></i>Demo Accounts</h6>
+                        <small class="text-muted">Use these credentials for testing:</small>
+                        
+                        <div class="demo-account">
+                            <span><strong>admin</strong> / admin123</span>
+                            <span class="badge bg-danger badge-role">Admin</span>
+                        </div>
+                        <div class="demo-account">
+                            <span><strong>manager</strong> / manager123</span>
+                            <span class="badge bg-warning badge-role">Manager</span>
+                        </div>
+                        <div class="demo-account">
+                            <span><strong>employee</strong> / employee123</span>
+                            <span class="badge bg-info badge-role">Employee</span>
+                        </div>
+                    </div>
+                    
+                    <!-- System Features -->
+                    <div class="mt-4 text-center">
+                        <div class="row text-muted small">
+                            <div class="col-4">
+                                <i class="fas fa-shield-alt fa-2x mb-2"></i>
+                                <br>Secure Access
+                            </div>
+                            <div class="col-4">
+                                <i class="fas fa-chart-line fa-2x mb-2"></i>
+                                <br>Real-time Data
+                            </div>
+                            <div class="col-4">
+                                <i class="fas fa-mobile-alt fa-2x mb-2"></i>
+                                <br>Mobile Ready
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="text-center mt-4 text-white-50">
+                    <p>&copy; 2025 Retail Inventory Tracker</p>
+                    <p class="small">Secure • Reliable • Scalable</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Toggle password visibility
+    function togglePassword() {
+        const passwordField = document.getElementById('password');
+        const toggleIcon = document.getElementById('togglePasswordIcon');
+        
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            toggleIcon.className = 'fas fa-eye-slash';
+        } else {
+            passwordField.type = 'password';
+            toggleIcon.className = 'fas fa-eye';
+        }
+    }
+
+    // Form validation and submission
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        
+        if (!username || !password) {
+            e.preventDefault();
+            showToast('Please fill in all required fields.', 'error');
+            return;
+        }
+        
+        // Show loading state
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Signing In...';
+        submitBtn.disabled = true;
+        
+        // Re-enable button after 3 seconds (in case of error)
+        setTimeout(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }, 3000);
+    });
+
+    // Auto-fill demo credentials
+    function fillDemoCredentials(username, password) {
+        document.getElementById('username').value = username;
+        document.getElementById('password').value = password;
+    }
+
+    // Add click events to demo accounts
+    document.addEventListener('DOMContentLoaded', function() {
+        const demoAccounts = [
+            { element: document.querySelectorAll('.demo-account')[0], username: 'admin', password: 'admin123' },
+            { element: document.querySelectorAll('.demo-account')[1], username: 'manager', password: 'manager123' },
+            { element: document.querySelectorAll('.demo-account')[2], username: 'employee', password: 'employee123' }
+        ];
+        
+        demoAccounts.forEach(account => {
+            if (account.element) {
+                account.element.style.cursor = 'pointer';
+                account.element.title = 'Click to auto-fill credentials';
+                account.element.addEventListener('click', () => {
+                    fillDemoCredentials(account.username, account.password);
+                    showToast('Demo credentials filled! Click Sign In to continue.', 'success');
+                });
+            }
+        });
+        
+        // Focus on username field
+        document.getElementById('username').focus();
+    });
+</script>
+{% endblock %}

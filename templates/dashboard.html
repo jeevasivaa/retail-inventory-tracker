@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Retail Inventory Tracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Professional Title Bar -->
+    <div class="title-bar">
+        <h1><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h1>
+        <h4>Overview of your inventory management system</h4>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary" onclick="refreshDashboard()">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                </button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#quickAddModal">
+                    <i class="fas fa-plus me-1"></i>Quick Add
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Performance Indicators -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="p-3 bg-primary bg-opacity-10 rounded-circle">
+                                <i class="fas fa-cube fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="text-muted small">Total Products</div>
+                            <div class="h3 mb-0">{{ total_products }}</div>
+                            <div class="small text-success">
+                                <i class="fas fa-arrow-up me-1"></i>12% vs last month
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="p-3 bg-success bg-opacity-10 rounded-circle">
+                                <i class="fas fa-boxes fa-2x text-success"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="text-muted small">Total Inventory</div>
+                            <div class="h3 mb-0">{{ "{:,}".format(total_inventory) }}</div>
+                            <div class="small text-info">
+                                <i class="fas fa-info-circle me-1"></i>Units in stock
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="p-3 bg-warning bg-opacity-10 rounded-circle">
+                                <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="text-muted small">Active Alerts</div>
+                            <div class="h3 mb-0">{{ unread_alerts }}</div>
+                            <div class="small text-warning">
+                                <i class="fas fa-clock me-1"></i>Need attention
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="p-3 bg-info bg-opacity-10 rounded-circle">
+                                <i class="fas fa-building fa-2x text-info"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="text-muted small">Warehouses</div>
+                            <div class="h3 mb-0">{{ total_warehouses }}</div>
+                            <div class="small text-muted">
+                                <i class="fas fa-map-marker-alt me-1"></i>Active locations
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Low Stock Alerts -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        Low Stock Alerts
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if low_stock_items %}
+                        <div class="list-group list-group-flush">
+                            {% for item in low_stock_items %}
+                            <div class="list-group-item border-0 px-0">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold">{{ item[0] }}</div>
+                                        <div class="small text-muted">{{ item[3] }}</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="text-danger fw-bold">{{ item[1] }} units</div>
+                                        <div class="small text-muted">Reorder: {{ item[2] }}</div>
+                                    </div>
+                                </div>
+                                <div class="progress mt-2" style="height: 4px;">
+                                    <div class="progress-bar bg-danger" 
+                                         style="width: {{ (item[1] / item[2] * 100) if item[2] > 0 else 0 }}%"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('alerts') }}" class="btn btn-outline-warning btn-sm">
+                                View All Alerts <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                            <h6>All Good!</h6>
+                            <p class="mb-0">No low stock alerts at the moment.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history text-info me-2"></i>
+                        Recent Stock Movements
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_movements %}
+                        <div class="list-group list-group-flush">
+                            {% for movement in recent_movements %}
+                            <div class="list-group-item border-0 px-0">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0 me-3">
+                                        {% if movement[1] == 'IN' %}
+                                            <div class="p-2 bg-success bg-opacity-10 rounded-circle">
+                                                <i class="fas fa-arrow-up text-success"></i>
+                                            </div>
+                                        {% else %}
+                                            <div class="p-2 bg-danger bg-opacity-10 rounded-circle">
+                                                <i class="fas fa-arrow-down text-danger"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold">{{ movement[0] }}</div>
+                                        <div class="small text-muted">{{ movement[3] }}</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold {% if movement[1] == 'IN' %}text-success{% else %}text-danger{% endif %}">
+                                            {% if movement[1] == 'IN' %}+{% else %}-{% endif %}{{ movement[2] }}
+                                        </div>
+                                        <div class="small text-muted">{{ movement[4][:10] }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('inventory') }}" class="btn btn-outline-info btn-sm">
+                                View Full History <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <h6>No Recent Activity</h6>
+                            <p class="mb-0">Stock movements will appear here.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line text-primary me-2"></i>
+                        Inventory Trends
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="inventoryChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie text-success me-2"></i>
+                        Category Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Add Modal -->
+<div class="modal fade" id="quickAddModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Quick Add Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="quickAddForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Product Name *</label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">SKU *</label>
+                                <input type="text" class="form-control" name="sku" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Category *</label>
+                                <select class="form-select" name="category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Clothing">Clothing</option>
+                                    <option value="Food">Food</option>
+                                    <option value="Home">Home</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Unit Price *</label>
+                                <input type="number" class="form-control" name="unit_price" step="0.01" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Initial Quantity</label>
+                                <input type="number" class="form-control" name="quantity" value="0">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Reorder Level</label>
+                                <input type="number" class="form-control" name="reorder_level" value="10">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Add Product
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize charts
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+        setupQuickAddForm();
+    });
+
+    function initializeCharts() {
+        // Inventory Trends Chart
+        const inventoryCtx = document.getElementById('inventoryChart').getContext('2d');
+        new Chart(inventoryCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Total Inventory',
+                    data: [12000, 15000, 13000, 17000, 16000, {{ total_inventory }}],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Category Distribution Chart
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Electronics', 'Clothing', 'Food', 'Home', 'Other'],
+                datasets: [{
+                    data: [30, 25, 20, 15, 10],
+                    backgroundColor: [
+                        '#667eea',
+                        '#f093fb',
+                        '#ffecd2',
+                        '#fcb69f',
+                        '#c471ed'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    function setupQuickAddForm() {
+        document.getElementById('quickAddForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Adding...';
+            submitBtn.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('quickAddModal'));
+                modal.hide();
+                
+                // Show success message
+                showToast('Product added successfully!', 'success');
+                
+                // Reset form
+                e.target.reset();
+                
+                // Restore button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+                // Optionally refresh dashboard
+                // refreshDashboard();
+            }, 1500);
+        });
+    }
+
+    function refreshDashboard() {
+        // Show loading indicator
+        showToast('Refreshing dashboard...', 'info');
+        
+        // Refresh the page
+        setTimeout(() => {
+            location.reload();
+        }, 1000);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Alerts - Retail Inventory Tracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Professional Title Bar -->
+    <div class="title-bar">
+        <h1><i class="fas fa-exclamation-triangle me-2"></i>Alerts & Notifications</h1>
+        <h4>Monitor critical inventory alerts and notifications</h4>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <button type="button" class="btn btn-outline-success" onclick="markAllRead()">
+                <i class="fas fa-check-double me-1"></i>Mark All Read
+            </button>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            {% if alerts_data %}
+                <div class="list-group list-group-flush">
+                    {% for alert in alerts_data %}
+                    <div class="list-group-item {% if not alert[4] %}bg-light{% endif %}">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                {% if alert[3] == 'high' %}
+                                    <i class="fas fa-exclamation-circle fa-2x text-danger"></i>
+                                {% elif alert[3] == 'medium' %}
+                                    <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle fa-2x text-info"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold">{{ alert[1].title() }} Alert</div>
+                                <div class="mb-1">{{ alert[2] }}</div>
+                                {% if alert[6] %}
+                                    <div class="small text-muted">Product: {{ alert[6] }}</div>
+                                {% endif %}
+                                {% if alert[7] %}
+                                    <div class="small text-muted">Warehouse: {{ alert[7] }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="text-end">
+                                <div class="small text-muted">{{ alert[5][:16] }}</div>
+                                {% if not alert[4] %}
+                                    <button class="btn btn-sm btn-outline-primary" onclick="markAsRead({{ alert[0] }})">
+                                        Mark as Read
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h5>No Alerts</h5>
+                    <p class="text-muted">All systems are running smoothly!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function markAsRead(alertId) {
+        fetch(`/api/alerts/mark_read/${alertId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload();
+            }
+        });
+    }
+
+    function markAllRead() {
+        showToast('Marking all alerts as read...', 'info');
+        setTimeout(() => location.reload(), 1000);
+    }
+</script>
+{% endblock %}
